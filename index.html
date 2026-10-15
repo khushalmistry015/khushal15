@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Attendance System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px #cccccc;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2563eb;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="text"] {
+            width: 65%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
+        }
+
+        .present {
+            color: green;
+            font-weight: bold;
+        }
+
+        .absent {
+            color: red;
+            font-weight: bold;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Student Attendance System</h1>
+
+    <label for="date">Select Date:</label>
+    <input type="date" id="date">
+
+    <br><br>
+
+    <input type="text" id="studentName"
+           placeholder="Enter student name">
+    <button onclick="addStudent()">Add Student</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Roll No.</th>
+                <th>Student Name</th>
+                <th>Attendance</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="studentList"></tbody>
+    </table>
+
+    <div class="summary">
+        <p>Total Students: <span id="total">0</span></p>
+        <p>Present: <span id="present">0</span></p>
+        <p>Absent: <span id="absent">0</span></p>
+    </div>
+
+    <button onclick="saveAttendance()">Save Attendance</button>
+</div>
+
+<script>
+    let students = [];
+
+    document.getElementById("date").value =
+        new Date().toISOString().split("T")[0];
+
+    function addStudent() {
+        const name = document.getElementById("studentName")
+            .value.trim();
+
+        if (name === "") {
+            alert("Please enter student name!");
+            return;
+        }
+
+        students.push({
+            name: name,
+            status: "Absent"
+        });
+
+        document.getElementById("studentName").value = "";
+        displayStudents();
+    }
+
+    function displayStudents() {
+        const list = document.getElementById("studentList");
+        list.innerHTML = "";
+
+        students.forEach((student, index) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td></td>
+                <td>
+                    <select onchange="markAttendance(${index}, this.value)">
+                        <option value="Present"
+                            ${student.status === "Present" ? "selected" : ""}>
+                            Present
+                        </option>
+                        <option value="Absent"
+                            ${student.status === "Absent" ? "selected" : ""}>
+                            Absent
+                        </option>
+                    </select>
+                </td>
+                <td>
+                    <button onclick="removeStudent(${index})">
+                        Remove
+                    </button>
+                </td>
+            `;
+
+            row.children[1].textContent = student.name;
+            list.appendChild(row);
+        });
+
+        updateSummary();
+    }
+
+    function markAttendance(index, status) {
+        students[index].status = status;
+        updateSummary();
+    }
+
+    function removeStudent(index) {
+        students.splice(index, 1);
+        displayStudents();
+    }
+
+    function updateSummary() {
+        document.getElementById("total").textContent =
+            students.length;
+
+        document.getElementById("present").textContent =
+            students.filter(s => s.status === "Present").length;
+
+        document.getElementById("absent").textContent =
+            students.filter(s => s.status === "Absent").length;
+    }
+
+    function saveAttendance() {
+        const date = document.getElementById("date").value;
+
+        if (!date) {
+            alert("Please select a date!");
+            return;
+        }
+
+        const attendance = {
+            date: date,
+            students: students
+        };
+
+        localStorage.setItem(
+            "attendance_" + date,
+            JSON.stringify(attendance)
+        );
+
+        alert("Attendance saved successfully!");
+    }
+</script>
+
+</body>
+</html>
